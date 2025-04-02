@@ -1,3 +1,4 @@
+import { saveAs } from 'file-saver'
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -362,7 +363,78 @@ function App() {
     
     setResults(newResults);
   };
+// CSV出力用の関数
+const exportToCSV = () => {
+  // 表示期間のデータのみを使用 (5期目以降)
+  const dataToExport = results.slice(4);
+  
+  // CSVヘッダー行を作成
+  const headers = [
+    '年度', 
+    'リテール営業部', 
+    '法人仲介', 
+    '仕入営業', 
+    '総売上', 
+    '総経費', 
+    '総利益'
+  ].join(',');
+  
+  // 各行のデータを整形
+  const csvRows = dataToExport.map(row => {
+    return [
+      row.year,
+      row['リテール営業部'] || 0,
+      row['法人仲介'] || 0,
+      row['仕入営業'] || 0,
+      row.総売上,
+      row.総経費,
+      row.総利益
+    ].join(',');
+  });
+  
+  // ヘッダーと行データを結合
+  const csvString = [headers, ...csvRows].join('\n');
+  
+  // CSVファイルを作成し、ダウンロード
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  saveAs(blob, `不動産会社シミュレーション_${new Date().toISOString().slice(0, 10)}.csv`);
+};
 
+// 詳細な人員データをCSVとしてエクスポート
+const exportStaffDataToCSV = () => {
+  // ヘッダー行を作成
+  const headers = [
+    '部門',
+    '5期目', 
+    '6期目', 
+    '7期目', 
+    '8期目', 
+    '9期目', 
+    '10期目',
+    '平均年収'
+  ].join(',');
+  
+  // 各行のデータを整形
+  const csvRows = staffResults.map(row => {
+    return [
+      row.department,
+      row['5期目'],
+      row['6期目'],
+      row['7期目'],
+      row['8期目'],
+      row['9期目'],
+      row['10期目'],
+      row['平均年収']
+    ].join(',');
+  });
+  
+  // ヘッダーと行データを結合
+  const csvString = [headers, ...csvRows].join('\n');
+  
+  // CSVファイルを作成し、ダウンロード
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  saveAs(blob, `人員計画データ_${new Date().toISOString().slice(0, 10)}.csv`);
+};
   // カスタムツールチップ内容の生成
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -549,7 +621,21 @@ function App() {
         </div>
 
         <div className="results">
-          <h2>シミュレーション結果</h2>
+  <h2>シミュレーション結果 
+    <button 
+      onClick={exportToCSV} 
+      className="export-button"
+    >
+      業績CSVエクスポート
+    </button>
+    <button 
+      onClick={exportStaffDataToCSV} 
+      className="export-button"
+    >
+      人員CSVエクスポート
+    </button>
+  </h2>
+  ...
           
           <div className="chart-container">
             <h3>年度別 部門種別売上内訳</h3>
